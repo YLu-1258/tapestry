@@ -90,7 +90,7 @@ Searches each note vector for its top‑k neighbors above a similarity threshold
   ...
 }
 ```
-**5. Inject Related Links (Not yet released)**
+**5. Inject Related Links **
 ```
 python main/Injector.py \
   --graph generations/graph.json \
