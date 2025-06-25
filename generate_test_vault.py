@@ -1,10 +1,11 @@
 
 import os
-from mistralai import Mistral
 import argparse
 import random
 import json
+import time
 from datetime import datetime
+from mistralai import Mistral
 
 # Initialize Mistral client
 api_key = os.environ.get("MISTRAL_API_KEY")
@@ -28,36 +29,48 @@ def generate_ai_note(tags: list) -> dict:
     """
     Use Mistral to generate a title and a short paragraph based on the given tags.
     Returns a dict with 'title' and 'content'.
-    Ts my first time using mistral API, so this is a basic example.
+    Handles rate limit errors by waiting 60 seconds and retrying.
     """
     prompt = (
         f"Generate a JSON object with keys 'title' and 'content'. "
         f"The title should be a concise heading for an Obsidian note covering these tags: {', '.join(tags)}. "
         f"The content should be a short paragraph (1-2 sentences) relevant to those tags."
     )
-    response = client.chat.complete(
-        model=model,
-        messages=[
-        {
-            "role": "system",
-            "content": "You are an AI assistant that generates concise and relevant notes for Obsidian vaults. It is imperative and very important that you return a JSON object formatted with a 'title' and 'content' key. The content should be a short paragraph (1-2 sentences) relevant to the tags provided. Do not include any additional text or explanations outside of the JSON object. Do not include code block formattings either, I don't want any backticks, just raw, unfiltered, json.",
-        },
-        {
-            "role": "user",
-            "content": prompt,
-        }
-        ]
-    )
-    # Extract text and parse JSON
-    text = response.choices[0].message.content.strip()
+
+    while True:
+        try:
+            response = client.chat.complete(
+                model=model,
+                messages=[
+                {
+                    "role": "system",
+                    "content": "You are an AI assistant that generates concise and relevant notes for Obsidian vaults. It is imperative and very important that you return a JSON object formatted with a 'title' and 'content' key. The content should be a short paragraph (1-2 sentences) relevant to the tags provided. Do not include any additional text or explanations outside of the JSON object. Do not include code block formattings either, I don't want any backticks, just raw, unfiltered, json.",
+                },
+                {
+                    "role": "user",
+                    "content": prompt,
+                }
+                ]
+            )
+            text = response.choices[0].message.content.strip()
+            break
+
+        except Exception as e:
+            err = str(e).lower()
+            if "rate limit" in err or "too many requests" in err:
+                print("🔄 Rate limit hit – sleeping for 60s before retrying...", file=sys.stderr)
+                time.sleep(60)
+            else:
+                # Non-rate-limit errors bubble up
+                raise
+            
     print("Mistral output: ", text)
+
     try:
-        # Ensure proper JSON
         if not text.startswith("{"):
             text = text[text.find("{"):]
         data = json.loads(text)
-    except Exception as e:
-        # Fallback: simple defaults
+    except Exception:
         data = {
             "title": " / ".join(tags).title(),
             "content": f"An overview note covering: {', '.join(tags)}."

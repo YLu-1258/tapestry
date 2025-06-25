@@ -29,6 +29,11 @@ class Extractor:
 
     def scan_notes(self, vault_dir: str) -> int:
         notes_scanned = 0
+
+        out_dir = os.path.dirname(self.output_file)
+        if out_dir:
+            os.makedirs(out_dir, exist_ok=True)
+
         with open(self.output_file, "w", encoding="utf8") as f:
             for root, _, files in os.walk(vault_dir):
                 for fn in files:
@@ -57,7 +62,7 @@ def main():
     args = p.parse_args()
     extractor = Extractor(args.vault, args.out)
     notes = extractor.scan_notes(args.vault)
-    print(f"Wrote {len(notes)} notes to {args.out}")
+    print(f"Wrote {notes} notes to {args.out}")
 
 if __name__ == "__main__":
     main()
