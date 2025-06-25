@@ -24,8 +24,8 @@ class GraphBuilder:
         graph = {}
         for i, note in enumerate(self.notes):
             neighbors = []
-            for score, j in zip(sims[i][1:], idxs[i][1:]):  # skip [0] = itself
-                if score >= self.threshold:
+            for score, j in zip(sims[i], idxs[i]): 
+                if score >= self.threshold and note["id"] != self.notes[j]["id"]:
                     neighbors.append({"id": self.notes[j]["id"], "score": float(score)})
             graph[note["id"]] = neighbors
         
