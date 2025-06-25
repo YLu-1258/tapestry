@@ -12,7 +12,7 @@ class Injector:
         self.vault = vault
         self.graph = graph
 
-    def inject(path: str, related_ids):
+    def inject(self, path: str, related_ids):
         text = open(path, encoding="utf8").read()
         m = self.FRONT_MATTER_RE.match(text)
         if not m:
