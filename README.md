@@ -10,21 +10,21 @@ A set of Python scripts to:
 # 📦 Installation
 
 ## Clone this repository
-
+```
 git clone https://github.com/YLu-1258/tapestry.git
 cd tapestry
-
+```
 ## Create a virtual environment (recommended)
-
+```
 python3 -m venv venv
 source venv/bin/activate
-
+```
 ## Install dependencies
 
-pip install -r requirements.txt
+`pip install -r requirements.txt`
 
 requirements.txt should include:
-
+```
 numpy
 faiss-cpu
 sentence-transformers
@@ -32,67 +32,69 @@ networkx
 matplotlib
 PyYAML
 mistralai  # for AI note generation
+```
 
 # 🔧 Script Overview & Usage
 
-1. Generate a Test Vault
-
+**1. Generate a Test Vault**
+```
 ./generate_test_vault.py \
   --vault ./test_vault \
   --notes 75 \
   --max-tags 5
-
-Creates a folder (./test_vault) with random subfolders and Markdown notes.
+```
+Creates a folder (`./test_vault`) with random subfolders and Markdown notes.
 Each note is enriched by Mistral AI, producing a title and short paragraph based on randomly chosen tags.
 
 Note: Set your Mistral API key in `~/.zshrc`:
-
+```
 export MISTRAL_API_KEY="your_api_key_here"
-
-2. Extract Note Metadata
-
+```
+**2. Extract Note Metadata**
+```
 python Extractor.py \
   --vault ./test_vault \
   --out metadata.jsonl
+```
 
 Parses YAML front-matter from each .md file and writes a JSON list of notes:
-
+```json
 [
   {"id": "note_1.md", "path": "./test_vault/note_1.md", "tags": [...], "title": "...", "summary": "..."},
   ...
 ]
-
-3. Build FAISS Index
-
+```
+**3. Build FAISS Index**
+```
 python Embedder.py \
   --metadata metadata.jsonl \
   --embeddings-out vectors.npy \
   --index-out   faiss.index
-
+```
 Combines tags + summaries into text, embeds with a sentence-transformer model (e.g. all-MiniLM-L6-v2), stores vectors in vectors.npy, and writes a FAISS index for similarity search.
 
-4. Find Semantic Neighbors
-
+**4. Find Semantic Neighbors**
+```
 python GraphBuilder.py \
   --metadata metadata.jsonl \
   --embeddings vectors.npy \
   --index faiss.index \
   --k 5 --threshold 0.4 \
   --out graph.json
-
+```
 Searches each note vector for its top‑k neighbors above a similarity threshold, producing a JSON adjacency list:
-
+```json
 {
   "note_1.md": [ {"id": "note_5.md", "score": 0.87}, ... ],
   ...
 }
-
-5. Inject Related Links (Not yet released)
-
+```
+**5. Inject Related Links (Not yet released)**
+```
 python inject_links.py \
   --graph graph.json \
   --vault ./test_vault
-
+```
 Updates each Markdown file’s front-matter to include:
 
 related:
@@ -102,16 +104,16 @@ related:
 
 so Obsidian will display backlinks automatically.
 
-6. Visualize the Graph
-
+**6. Visualize the Graph**
+```
 python viz_graph.py \
   --graph graph.json \
   --top-n 50 \
   --min-wt 0.25
-
+```
 Loads graph.json into a NetworkX graph, prunes low‑weight edges, optionally limits to the top‑N nodes by degree, and draws a force‑directed layout via Matplotlib.
 
-⚙️ Configuration & Customization
+# ⚙️ Configuration & Customization
 
 Tag weighting: adjust how tags vs. content are embedded in build_index.py.
 
@@ -121,7 +123,7 @@ Index parameters: swap FAISS index types (e.g. IndexHNSWFlat for large-scale).
 
 Visualization layout: tweak spring_layout parameters in viz_graph.py (e.g., k, iterations).
 
-📄 License
+# 📄 License
 
 This project is licensed under the MIT License. See LICENSE for details.
 
