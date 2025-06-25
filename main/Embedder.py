@@ -52,9 +52,9 @@ class Embedder:
 
 def main():
     parser = argparse.ArgumentParser()
-    parser.add_argument("--metadata", default="metadata.jsonl", help="metadata.json from extract")
-    parser.add_argument("--index-out", default="faiss.index", help="where to write FAISS index")
-    parser.add_argument("--embeddings-out", default="vectors.npy", help="where to save vectors.npy")
+    parser.add_argument("--metadata", default="generations/metadata.jsonl", help="metadata.json from extract")
+    parser.add_argument("--index-out", default="generations/faiss.index", help="where to write FAISS index")
+    parser.add_argument("--embeddings-out", default="generations/vectors.npy", help="where to save vectors.npy")
     args = parser.parse_args()
 
     embedder = Embedder(data=args.metadata, faiss_out=args.index_out, embeddings_out=args.embeddings_out)

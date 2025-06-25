@@ -35,12 +35,12 @@ class GraphBuilder:
     
 def main():
     p = argparse.ArgumentParser()
-    p.add_argument("--metadata", default="metadata.jsonl", help="metadata.json from extract")
-    p.add_argument("--embeddings", default="vectors.npy", help="vectors.npy from embed")
-    p.add_argument("--index", default="faiss.index", help="FAISS index file")
+    p.add_argument("--metadata", default="generations/metadata.jsonl", help="metadata.json from extract")
+    p.add_argument("--embeddings", default="generations/vectors.npy", help="vectors.npy from embed")
+    p.add_argument("--index", default="generations/faiss.index", help="FAISS index file")
     p.add_argument("--k",      type=int, default=5)
     p.add_argument("--threshold", type=float, default=0.4)
-    p.add_argument("--out",    default="graph.json", help="output graph file")
+    p.add_argument("--out",    default="generations/graph.json", help="output graph file")
 
     builder = GraphBuilder(
         metadata_file=p.parse_args().metadata,

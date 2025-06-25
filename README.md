@@ -25,20 +25,21 @@ source venv/bin/activate
 
 requirements.txt should include:
 ```
-numpy
 faiss-cpu
-sentence-transformers
-networkx
-matplotlib
+jsonlines
+mistralai
+numpy
 PyYAML
-mistralai  # for AI note generation
+sentence_transformers
+matplotlib
+networkx
 ```
 
 # 🔧 Script Overview & Usage
 
 **1. Generate a Test Vault**
 ```
-./generate_test_vault.py \
+python generate_test_vault.py \
   --vault ./test_vault \
   --notes 75 \
   --max-tags 5
@@ -52,9 +53,9 @@ export MISTRAL_API_KEY="your_api_key_here"
 ```
 **2. Extract Note Metadata**
 ```
-python Extractor.py \
+python main/Extractor.py \
   --vault ./test_vault \
-  --out metadata.jsonl
+  --out generations/metadata.jsonl
 ```
 
 Parses YAML front-matter from each .md file and writes a JSON list of notes:
@@ -66,21 +67,21 @@ Parses YAML front-matter from each .md file and writes a JSON list of notes:
 ```
 **3. Build FAISS Index**
 ```
-python Embedder.py \
-  --metadata metadata.jsonl \
-  --embeddings-out vectors.npy \
-  --index-out   faiss.index
+python main/Embedder.py \
+  --metadata generations/metadata.jsonl \
+  --embeddings-out generations/vectors.npy \
+  --index-out   generations/faiss.index
 ```
 Combines tags + summaries into text, embeds with a sentence-transformer model (e.g. all-MiniLM-L6-v2), stores vectors in vectors.npy, and writes a FAISS index for similarity search.
 
 **4. Find Semantic Neighbors**
 ```
-python GraphBuilder.py \
-  --metadata metadata.jsonl \
-  --embeddings vectors.npy \
-  --index faiss.index \
+python main/GraphBuilder.py \
+  --metadata generations/metadata.jsonl \
+  --embeddings generations/vectors.npy \
+  --index generations/faiss.index \
   --k 5 --threshold 0.4 \
-  --out graph.json
+  --out generations/graph.json
 ```
 Searches each note vector for its top‑k neighbors above a similarity threshold, producing a JSON adjacency list:
 ```json
@@ -91,8 +92,8 @@ Searches each note vector for its top‑k neighbors above a similarity threshold
 ```
 **5. Inject Related Links (Not yet released)**
 ```
-python inject_links.py \
-  --graph graph.json \
+python main/Injector.py \
+  --graph generations/graph.json \
   --vault ./test_vault
 ```
 Updates each Markdown file’s front-matter to include:
@@ -107,7 +108,7 @@ so Obsidian will display backlinks automatically.
 **6. Visualize the Graph**
 ```
 python viz_graph.py \
-  --graph graph.json \
+  --graph generations/graph.json \
   --top-n 50 \
   --min-wt 0.25
 ```

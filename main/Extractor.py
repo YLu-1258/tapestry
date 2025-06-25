@@ -53,7 +53,7 @@ class Extractor:
 def main():
     p = argparse.ArgumentParser()
     p.add_argument("--vault", required=True, help="path to your vault folder")
-    p.add_argument("--out", required=True, help="metadata.json output path")
+    p.add_argument("--out", default="generations/metadata.jsonl", help="metadata.jsonl output path")
     args = p.parse_args()
     extractor = Extractor(args.vault, args.out)
     notes = extractor.scan_notes(args.vault)
