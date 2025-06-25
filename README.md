@@ -109,7 +109,7 @@ so Obsidian will display backlinks automatically.
 ```
 python viz_graph.py \
   --graph generations/graph.json \
-  --top-n 50 \
+  --top-n 75 \
   --min-wt 0.25
 ```
 Loads graph.json into a NetworkX graph, prunes low‑weight edges, optionally limits to the top‑N nodes by degree, and draws a force‑directed layout via Matplotlib.
