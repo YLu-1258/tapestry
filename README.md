@@ -7,6 +7,61 @@ A set of Python scripts to:
 4. Find semantic neighbors between notes (GraphBuilder.py).
 5. Visualize the resulting note graph (viz_graph.py).
 
+![image](https://github.com/user-attachments/assets/895d215c-34b7-4249-8c6d-f961367ee844)
+
+# How does Tapestry work?
+
+Tapestry automatically scans a given Obsidian vault for relevant Markdown files, and extracts the front-matter data and the first non-whitespace paragraph from each file. It then tokenizes the following:
+- **blog tags**
+- **title**
+- **first paragraph (summary)**
+
+It calculates the mean of the blog-tag tokens (`token_tags`), and uses `token_tags`, `token_title`, and `token_summary` to produce a weighted average token that encapsulates the semantic meaning of the note.
+
+This token is then inserted into a vector index (e.g. FAISS or another ANN store) under the hood, where each note’s “semantic token” lives as a point in high-dimensional space. From there, Tapestry proceeds in two stages:
+
+## 1. Indexing
+- Tapestry computes:
+
+    token_note = w_tags·token_tags + w_title·token_title + w_summary·token_summary
+
+  and normalizes it.  
+- It then upserts `token_note` into the vector index under the key `note_id`.
+
+## 2. Link discovery
+- For each note, Tapestry performs a *k*-NN lookup (by cosine similarity) in the index to find the *k* most semantically similar notes.  
+- It filters out any results whose similarity falls below a configurable threshold (e.g. 0.4).  
+- The remaining neighbors become “related notes.”
+
+Finally, Tapestry materializes those relationships in one (or both) of two ways:
+
+### Front-matter backlinks
+It injects a `related:` list into each Markdown file’s YAML front-matter:
+
+    ---
+    related:
+      - other_note_A.md
+      - other_note_B.md
+    ---
+
+Obsidian will then show those as clickable backlinks.
+
+### Standalone graph file
+It writes out a `graph.json` of the form:
+
+    {
+      "note1.md": [{ "id": "note7.md", "score": 0.82 }, …],
+      "note2.md": [ … ]
+    }
+
+which you can feed into a visualization tool (e.g. NetworkX + Matplotlib or a D3-based web view) to visualize your vault as a semantic network.
+
+---
+## Tunable knobs
+- **Weights** (`w_tags`, `w_title`, `w_summary`): shift emphasis between tags, title, and summary.  
+- **Embedding model**: swap in a larger or specialized transformer if you need more nuance.  
+- **Similarity threshold & *k***: control graph sparsity (fewer, stronger links) versus density (more exploratory links).  
+
 # 📦 Installation
 
 ## Clone this repository
@@ -110,7 +165,7 @@ so Obsidian will display backlinks automatically.
 python viz_graph.py \
   --graph generations/graph.json \
   --top-n 75 \
-  --min-wt 0.25
+  --min-wt 0.4
 ```
 Loads graph.json into a NetworkX graph, prunes low‑weight edges, optionally limits to the top‑N nodes by degree, and draws a force‑directed layout via Matplotlib.
 
