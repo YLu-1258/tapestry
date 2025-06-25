@@ -1,0 +1,8 @@
+faiss-cpu
+jsonlines
+mistralai
+numpy
+PyYAML
+sentence_transformers
+matplotlib
+networkx
